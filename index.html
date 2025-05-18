@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora de Asistencia</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 420px;
+            margin: 48px auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(60,64,67,.15);
+            padding: 32px 28px 24px 28px;
+        }
+        h1 {
+            font-size: 1.7em;
+            font-weight: 400;
+            color: #202124;
+            margin-bottom: 24px;
+            letter-spacing: -1px;
+        }
+        label {
+            font-size: 1em;
+            color: #5f6368;
+            margin-bottom: 4px;
+            display: block;
+        }
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 18px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-size: 1em;
+            background: #f8f9fa;
+            transition: border-color 0.2s;
+            outline: none;
+            box-sizing: border-box;
+        }
+        input[type="number"]:focus, input[type="text"]:focus {
+            border-color: #4285f4;
+            background: #fff;
+        }
+        button[type="submit"] {
+            width: 100%;
+            background: #4285f4;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 0;
+            font-size: 1.1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
+            margin-bottom: 0;
+        }
+        button[type="submit"]:hover {
+            background: #3367d6;
+        }
+        .resultado {
+            margin-top: 2em;
+            background: #f1f3f4;
+            padding: 1.2em 1em;
+            border-radius: 10px;
+            color: #202124;
+            font-size: 1.05em;
+            word-break: break-word;
+            box-shadow: 0 1px 2px rgba(60,64,67,.07);
+        }
+        .error {
+            color: #d93025;
+            background: #fce8e6;
+            border: 1px solid #fbcfcf;
+        }
+        .selector-grupo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .selector-grupo input[type="number"] {
+            flex: 2;
+            margin-bottom: 0;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-right: none;
+            background: #f8f9fa;
+        }
+        .selector-btn {
+            flex: 1;
+            padding: 10px 0;
+            border: 1px solid #dadce0;
+            background: #f8f9fa;
+            color: #5f6368;
+            border-radius: 0;
+            font-size: 1em;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s, color 0.2s;
+            outline: none;
+            margin-bottom: 0;
+            border-left: none;
+        }
+        .selector-btn:first-of-type {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-top-left-radius: 6px;
+            border-bottom-left-radius: 6px;
+            border-left: 1px solid #dadce0;
+        }
+        .selector-btn:last-of-type {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            border-top-right-radius: 6px;
+            border-bottom-right-radius: 6px;
+        }
+        .selector-btn.selected, .selector-btn:focus {
+            border-color: #4285f4;
+            background: #e8f0fe;
+            color: #1967d2;
+            font-weight: 500;
+            z-index: 1;
+        }
+        .selector-grupo input[type="number"]:focus {
+            border-color: #4285f4;
+            z-index: 2;
+        }
+        @media (max-width: 500px) {
+            .container { padding: 18px 6px 12px 6px; }
+            .selector-grupo { flex-direction: column; gap: 0; }
+            .selector-grupo input[type="number"], .selector-btn {
+                width: 100%;
+                border-radius: 6px !important;
+                border: 1px solid #dadce0;
+                margin-bottom: 8px;
+            }
+            .selector-btn {
+                border-left: 1px solid #dadce0 !important;
+            }
+        }
+        .resumen-box {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(60,64,67,.10);
+            padding: 20px 18px;
+            margin-top: 0;
+            position: relative;
+        }
+        .resumen-placeholder {
+            min-height: 180px;
+            box-shadow: none;
+            background: #f8f9fa;
+        }
+        .resumen-chart-container {
+            margin: 0 auto 10px auto;
+            display: flex;
+            justify-content: center;
+        }
+        .resumen-chart-container canvas {
+            background: #fff;
+        }
+        .borrar-sesion-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.15s;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .borrar-sesion-btn svg {
+            display: block;
+            height: 24px;
+            width: 24px;
+            pointer-events: none;
+        }
+        .borrar-sesion-btn:hover, .borrar-sesion-btn:focus {
+            background: #f1f3f4;
+            outline: none;
+        }
+        .titulo-box {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 500px) {
+            .borrar-sesion-btn {
+                padding: 4px;
+            }
+            .titulo-box {
+                margin-bottom: 18px;
+            }
+        }
+        .resumen-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.08em;
+            color: #444;
+        }
+        .resumen-row strong {
+            color: #202124;
+            font-weight: 500;
+        }
+        .resumen-row .resumen-label {
+            color: #5f6368;
+        }
+        .resumen-row .resumen-value {
+            font-variant-numeric: tabular-nums;
+        }
+        .resumen-row.highlight {
+            background: #f1f3f4;
+            border-radius: 6px;
+            padding: 6px 0;
+        }
+        .resumen-row .resumen-value.primary {
+            color: #1967d2;
+            font-weight: 600;
+        }
+        .resumen-row .resumen-value.success {
+            color: #188038;
+            font-weight: 600;
+        }
+        .resumen-row .resumen-value.danger {
+            color: #d93025;
+            font-weight: 600;
+        }
+        .resumen-actions {
+            background: #e8f0fe;
+            border-radius: 8px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .resumen-actions span {
+            font-size: 1.08em;
+        }
+        .resumen-actions .primary {
+            color: #1967d2;
+            font-weight: 500;
+        }
+        .resumen-actions .success {
+            color: #188038;
+            font-weight: 500;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="titulo-box">
+            <h1 style="margin-bottom:0;">Calculadora de Asistencia</h1>
+            <button id="borrarSesionBtn" class="borrar-sesion-btn" title="Eliminar datos de la sesión" aria-label="Eliminar datos de la sesión">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#999999"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+            </button>
+        </div>
+        <form id="asistenciaForm" autocomplete="off">
+            <label for="horasPorClase">
+                Horas planificadas por clase: <span>(Por ejemplo: 2)</span>
+            </label>
+            <input type="number" step="any" min="0.01" id="horasPorClase" required>
+
+            <label>
+                Clases asistidas:
+            </label>
+            <div class="selector-grupo">
+                <input type="number" min="0" step="1" id="asistidasValor" required>
+                <button type="button" class="selector-btn selected" id="asistidasHorasBtn">Horas</button>
+                <button type="button" class="selector-btn" id="asistidasClasesBtn">Clases</button>
+            </div>
+
+            <label>
+                Clases ausentes:
+            </label>
+            <div class="selector-grupo">
+                <input type="number" min="0" step="1" id="ausentesValor" required>
+                <button type="button" class="selector-btn" id="ausentesHorasBtn">Horas</button>
+                <button type="button" class="selector-btn selected" id="ausentesClasesBtn">Clases</button>
+            </div>
+
+            <label for="totalHorasInput">
+                Total de horas planificadas para la clase:
+            </label>
+            <input type="number" step="any" min="0.01" id="totalHorasInput" required>
+
+            <label for="porcentajeMinimo">
+                Porcentaje mínimo requerido (%):
+            </label>
+            <input type="number" step="any" min="1" max="100" id="porcentajeMinimo" value="60" required>
+
+            <button type="submit">Calcular</button>
+        </form>
+        <div class="resultado" id="resultado">
+            <div class="resumen-box resumen-placeholder">
+                <div style="text-align:center;color:#b0b0b0;padding:32px 0;">
+                    <svg width="48" height="48" fill="none" style="margin-bottom:12px;">
+                        <circle cx="24" cy="24" r="22" stroke="#e0e0e0" stroke-width="3"/>
+                        <path d="M16 28c2-2 6-2 8 0s6 2 8 0" stroke="#e0e0e0" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="18" cy="20" r="2" fill="#e0e0e0"/>
+                        <circle cx="30" cy="20" r="2" fill="#e0e0e0"/>
+                    </svg>
+                    <div style="font-size:1.1em;">Aquí verás el resumen de tu asistencia</div>
+                </div>
+            </div>
+        </div>
+        <div id="shareBox" style="display:none;margin-top:18px;">
+            <button id="shareBtn" type="button" style="width:100%;background:#34a853;color:#fff;border:none;border-radius:6px;padding:10px 0;font-size:1em;font-weight:500;cursor:pointer;margin-bottom:8px;">
+                Compartir enlace
+            </button>
+            <input id="shareUrl" type="text" readonly style="width:100%;padding:8px 10px;border:1px solid #dadce0;border-radius:6px;font-size:0.98em;background:#f8f9fa;color:#444;">
+            <div id="shareMsg" style="font-size:0.97em;color:#188038;margin-top:6px;display:none;">¡Enlace copiado al portapapeles!</div>
+        </div>
+    </div>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Nuevo archivo para compartir datos -->
+    <script src="share.js"></script>
+    <script src="asistencia-calc.js"></script>
+    <script src="asistencia-ui.js"></script>
+</body>
+</html>
